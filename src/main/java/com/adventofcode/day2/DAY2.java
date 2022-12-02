@@ -3,105 +3,137 @@ package com.adventofcode.day2;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.adventofcode.day2.DAY2.OPTIONS.*;
+import static com.adventofcode.day2.DAY2.OPTIONS.ROCK;
+import static com.adventofcode.day2.DAY2.RESULT.*;
 
 public class DAY2 {
-
 
     public static void main(String[] args) throws IOException {
 
         var lines = Files.readAllLines(Path.of("src/main/java/com/adventofcode/day2/input.txt"));
 
         String example = """
-        A Y
-        B X
-        C Z""";
+                A Y
+                B X
+                C Z""";
 
-      // lines = Arrays.stream(example.split("\n")).toList();
+        // lines = Arrays.stream(example.split("\n")).toList();
 
         System.out.println("First part");
-        int sum = 0;
-        for (var line : lines) {
-            if(line.isEmpty()) continue;
-            String[] split = line.split(" ");
-            int score = score(split[0], split[1]);
-            //printFight(split[0], decide, score);
-            sum += score;
-        }
-        System.out.println(sum);
+        fistPart(lines);
 
         System.out.println("Second part");
-        sum = 0;
+        secondPart(lines);
+    }
+
+    private static void fistPart(List<String> lines) {
+        int sum = 0;
         for (var line : lines) {
-            if(line.isEmpty()) continue;
+            if (line.isEmpty()) continue;
             String[] split = line.split(" ");
-            String decide = decide(split[0], split[1]);
-            int score = score(split[0], decide);
-            //printFight(split[0], decide, score);
+            OPTIONS enemy = getOptions(split[0]);
+            OPTIONS me = getOptions(split[1]);
+            int score = score(enemy, me);
+            //System.out.printf("%s vs %s = %d\n", enemy, me, score);
             sum += score;
         }
         System.out.println(sum);
     }
 
-    private static void printFight(String v1, String v2, int score) {
-        String enemy = switch (v1){
-            case "A" -> "ROCK";
-            case "B" -> "PAIPER";
-            case "C" -> "SCISSORS";
-            default -> "UNKONW";
-        };
-        String me = switch (v2){
-            case "X" -> "ROCK";
-            case "Y" -> "PAIPER";
-            case "Z" -> "SCISSORS";
-            default -> "UNKONW";
-        };
-        System.out.printf("%s vs %s = %d\n", enemy, me, score);
+    private static void secondPart(List<String> lines) {
+        int sum;
+        sum = 0;
+        for (var line : lines) {
+            if (line.isEmpty()) continue;
+            String[] split = line.split(" ");
+            OPTIONS enemy = getOptions(split[0]);
+            OPTIONS me = decide(enemy, getResult(split[1]));
+            int score = score(enemy, me);
+            //System.out.printf("%s vs %s = %d\n", enemy, me, score);
+            sum += score;
+        }
+        System.out.println(sum);
     }
-    /*
-    ROCK     A X
-    PAPER    B Y
-    SCISSORS C Z
-     */
 
-    static String decide(String v1, String v2){
-        return switch (v1) {
-            case "A" -> switch (v2) {
-                case "X" -> "Z";
-                case "Y" -> "X";
-                default -> "Y";
-            };
-            case "B" -> switch (v2) {
-                case "X" -> "X";
-                case "Y" -> "Y";
-                default -> "Z";
-            };
-            case "C" -> switch (v2) {
-                case "X" -> "Y";
-                case "Y" -> "Z";
-                default -> "X";
-            };
-            default -> "";
+    enum OPTIONS {
+        ROCK(1), PAIPER(2), SCISSORS(3);
+
+        public final int value;
+
+        OPTIONS(int value) {
+            this.value = value;
+        }
+    }
+
+    static public OPTIONS getOptions(String value) {
+        return switch (value) {
+            case "A", "X" -> ROCK;
+            case "B", "Y" -> PAIPER;
+            case "C", "Z" -> SCISSORS;
+            default -> null;
         };
     }
 
-    static int score(String v1, String v2){
+    enum RESULT {
+        LOSS(0), DRAW(3), WIN(6);
+
+        public final int value;
+
+        RESULT(int value) {
+            this.value = value;
+        }
+    }
+
+    static public RESULT getResult(String value) {
+        return switch (value) {
+            case "X" -> LOSS;
+            case "Y" -> DRAW;
+            case "Z" -> WIN;
+            default -> null;
+        };
+    }
+
+    static OPTIONS decide(OPTIONS v1, RESULT v2) {
         return switch (v1) {
-            case "A" -> switch (v2) {
-                case "X" -> 3+1;
-                case "Y" -> 6+2;
-                default -> 0+3;
+            case ROCK -> switch (v2) {
+                case LOSS -> SCISSORS;
+                case DRAW -> ROCK;
+                case WIN -> PAIPER;
             };
-            case "B" -> switch (v2) {
-                case "X" -> 0+1;
-                case "Y" -> 3+2;
-                default -> 6+3;
+            case PAIPER -> switch (v2) {
+                case LOSS -> ROCK;
+                case DRAW -> PAIPER;
+                case WIN -> SCISSORS;
             };
-            case "C" -> switch (v2) {
-                case "X" -> 6+1;
-                case "Y" -> 0+2;
-                default -> 3+3;
+            case SCISSORS -> switch (v2) {
+                case LOSS -> PAIPER;
+                case DRAW -> SCISSORS;
+                case WIN -> ROCK;
             };
-            default -> 0;
+        };
+    }
+
+    static int score(OPTIONS v1, OPTIONS v2) {
+        return switch (v1) {
+            case ROCK -> switch (v2) {
+                case ROCK -> DRAW.value + ROCK.value;
+                case PAIPER -> WIN.value + PAIPER.value;
+                case SCISSORS -> LOSS.value + SCISSORS.value;
+            };
+            case PAIPER -> switch (v2) {
+                case ROCK -> LOSS.value + ROCK.value;
+                case PAIPER -> DRAW.value + PAIPER.value;
+                case SCISSORS -> WIN.value + SCISSORS.value;
+            };
+            case SCISSORS -> switch (v2) {
+                case ROCK -> WIN.value + ROCK.value;
+                case PAIPER -> LOSS.value + PAIPER.value;
+                case SCISSORS -> DRAW.value + SCISSORS.value;
+            };
         };
     }
 }
