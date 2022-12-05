@@ -3,8 +3,9 @@ package com.adventofcode.day1;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.List;
 
 public class day1 {
 
@@ -12,22 +13,20 @@ public class day1 {
 
         var lines = Files.readAllLines(Path.of("src/main/java/com/adventofcode/day1/input.txt"));
 
-        HashMap<Integer, Integer> sums = new HashMap<>();
-        int count = 0;
+        List<Integer> sums = new ArrayList<>();
+        int sum = 0;
         for (var line : lines) {
             if (line.isEmpty()) {
-                count++;
+                sums.add(sum);
+                sum = 0;
             } else {
-                if (sums.containsKey(count)) {
-                    sums.put(count, sums.get(count) + Integer.parseInt(line));
-                } else {
-                    sums.put(count, Integer.parseInt(line));
-                }
+                sum += Integer.parseInt(line);
             }
         }
+        if (sum != 0) sums.add(sum);
         //fist answer
-        System.out.println(sums.values().stream().max(Integer::compareTo).orElse(0));
+        System.out.println(sums.stream().max(Integer::compareTo).orElse(0));
         //second answer
-        System.out.println(sums.values().stream().sorted(Comparator.reverseOrder()).limit(3).reduce(Integer::sum).orElse(0));
+        System.out.println(sums.stream().sorted(Comparator.reverseOrder()).limit(3).reduce(Integer::sum).orElse(0));
     }
 }
